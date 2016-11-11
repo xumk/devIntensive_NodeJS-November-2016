@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 
+const REG_EXP = new RegExp('@?(https?:)?(\/\/)?((telegram|vk|vkontakte|www.vk|twitter|github|xn--80adtgbbrh1bc.xn--p1ai|medium.com)[^\/]*\/)?([@]?[a-zA-Z0-9]*[._]?[a-zA-Z0-9]*)', 'i');
 const app = express();
 app.use(cors());
 app.get('/', (req, res) => {
@@ -51,6 +52,16 @@ app.get('/lesson2/2B', (req, res) => {
 
 function getFirstChar(str) {
     return str.charAt(0);
+}
+
+app.get('/lesson2/2C', (req, res) => {
+    const username = getUserNameByUrl(req.query.username);
+    res.send(username);
+});
+
+function getUserNameByUrl(url) {
+    const username = url.match(REG_EXP)[5];
+    return username.charAt(0) === '@' ? username : '@' + username;
 }
 
 app.listen(3000, () => {
