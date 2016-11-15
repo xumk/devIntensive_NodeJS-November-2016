@@ -1,7 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import fetch from 'isomorphic-fetch'
 
-const REG_EXP = new RegExp('@?(https?:)?(\/\/)?((telegram|vk|vkontakte|www.vk|twitter|github|xn--80adtgbbrh1bc.xn--p1ai|medium.com)[^\/]*\/)?([@]?[a-zA-Z0-9]*[._]?[a-zA-Z0-9]*)', 'i');
+        const REG_EXP = new RegExp('@?(https?:)?(\/\/)?((telegram|vk|vkontakte|www.vk|twitter|github|xn--80adtgbbrh1bc.xn--p1ai|medium.com)[^\/]*\/)?([@]?[a-zA-Z0-9]*[._]?[a-zA-Z0-9]*)', 'i');
 const app = express();
 app.use(cors());
 app.get('/', (req, res) => {
@@ -62,6 +63,92 @@ app.get('/lesson2/2C', (req, res) => {
 function getUserNameByUrl(url) {
     const username = url.match(REG_EXP)[5];
     return username.charAt(0) === '@' ? username : '@' + username;
+}
+
+const pcUrl = 'https://gist.githubusercontent.com/isuvorov/ce6b8d87983611482aac89f6d7bc0037/raw/pc.json';
+
+let pc = {};
+fetch(pcUrl)
+        .then(async (res) => {
+            pc = await res.json();
+        })
+        .catch(err => {
+            console.log('Чтото пошло не так:', err);
+        });
+
+const url = require("url");
+
+app.get(/\/lessons3\/3C\//, (req, res) => {
+    const pathname = req.url;
+    const arr = processingPathname(pathname);
+    const obj = typeof (pc);
+    console.log(arr);
+    console.log(arr.length);
+    if (arr.length === 0 || arr.length === 1) {
+        if (arr[0].length === 0) {
+            res.status(200);
+            res.json(pc);
+        } else {
+            if (arr[0] === 'volumes') {
+                let hdd = pc.hdd;
+                let result = {};
+                hdd.forEach((item, i, hdd) => {
+                    if (result[item.volume] === undefined) {
+                        result[item.volume] = item.size;
+                        hdd = hdd.slice(1, i);
+                    } else {
+                        result[item.volume] += item.size;
+                        hdd = hdd.slice(1, i);
+                    }
+                });
+                for (let key in result) {
+                    result[key] = result[key] + 'B';
+                }
+                console.log(result);
+                res.status(200);
+                res.json(result);
+            } else {
+                if (pc[arr[0]] === undefined) {
+                    res.status(404);
+                    res.send('Not Found');
+                } else {
+                    res.status(200);
+                    res.json(pc[arr[0]]);
+                }
+            }
+        }
+    } else {
+        let obj1 = pc[arr[0]];
+        console.log(Array.isArray(obj1));
+        let arr1 = arr.slice(1);
+        if (Array.isArray(obj1) && arr1.length > 0) {
+            res.status(404);
+            res.send('Not Found');
+        } else {
+            if (obj1 !== undefined) {
+                for (let i in arr1) {
+                    if (obj1[arr1[i]] === undefined) {
+                        obj1 = undefined;
+                        break;
+                    }
+                    obj1 = obj1[arr1[i]];
+                }
+            }
+            if (obj1 === undefined) {
+                res.status(404);
+                res.send('Not Found');
+            } else {
+                res.status(200);
+                res.json(obj1);
+            }
+        }
+    }
+});
+
+function processingPathname(pathname) {
+    let arr = pathname.split('\/');
+    arr = arr.slice(3);
+    return arr;
 }
 
 app.listen(3000, () => {
