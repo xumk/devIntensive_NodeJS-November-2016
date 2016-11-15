@@ -82,10 +82,8 @@ app.get(/\/lessons3\/3C\//, (req, res) => {
     const pathname = req.url;
     const arr = processingPathname(pathname);
     const obj = typeof (pc);
-    console.log(arr);
-    console.log(arr.length);
     if (arr.length === 0 || arr.length === 1) {
-        if (arr[0].length === 0) {
+        if (arr.length === 0) {
             res.status(200);
             res.json(pc);
         } else {
@@ -104,7 +102,6 @@ app.get(/\/lessons3\/3C\//, (req, res) => {
                 for (let key in result) {
                     result[key] = result[key] + 'B';
                 }
-                console.log(result);
                 res.status(200);
                 res.json(result);
             } else {
@@ -119,15 +116,14 @@ app.get(/\/lessons3\/3C\//, (req, res) => {
         }
     } else {
         let obj1 = pc[arr[0]];
-        console.log(Array.isArray(obj1));
         let arr1 = arr.slice(1);
-        if (Array.isArray(obj1) && arr1.length > 0) {
+        if (Array.isArray(obj1) && (arr1.length > 0 && isNaN(+arr1[0]))) {
             res.status(404);
             res.send('Not Found');
         } else {
             if (obj1 !== undefined) {
                 for (let i in arr1) {
-                    if (obj1[arr1[i]] === undefined) {
+                    if (obj1[arr1[i]] === undefined || arr1[i] === 'length') {
                         obj1 = undefined;
                         break;
                     }
@@ -147,8 +143,14 @@ app.get(/\/lessons3\/3C\//, (req, res) => {
 
 function processingPathname(pathname) {
     let arr = pathname.split('\/');
+    let result = [];
     arr = arr.slice(3);
-    return arr;
+    arr.forEach((item, i, arr) => {
+        if (item.length !== 0) {
+            result.push(item);
+        }
+    });
+    return result;
 }
 
 app.listen(3000, () => {
