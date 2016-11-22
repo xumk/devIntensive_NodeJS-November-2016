@@ -153,8 +153,37 @@ function processingPathname(pathname) {
     return result;
 }
 
+String.prototype.replaceAll = function (search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};
+
 app.get('/lesson2/2D', (req, res) => {
-    
+    let colors = req.query.color;
+    console.log(colors);
+    if (colors) {
+        colors = colors.toLowerCase();
+        colors = colors.replaceAll(" ", "");
+        const firstChar = colors.charAt(0);
+        if (firstChar === '#') {
+            colors = colors.slice(1);
+        }
+        if (/^#?([a-f0-9]{6}|[a-f0-9]{3})$/.test(colors)) {
+            let result = colors;
+            if (result.length === 3) {
+                result = "";
+                let char;
+                for (var i = 0; i < colors.length; i++) {
+                    char = colors.charAt(i);
+                    console.log(char);
+                    result += (char + char);
+                }
+                console.log(result);
+            }
+            res.send('#' + result);
+        }
+    }
+    res.send("Invalid color");
 });
 
 app.listen(3000, () => {
