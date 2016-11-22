@@ -160,27 +160,49 @@ String.prototype.replaceAll = function (search, replacement) {
 
 app.get('/lesson2/2D', (req, res) => {
     let colors = req.query.color;
-    console.log(colors);
     if (colors) {
         colors = colors.toLowerCase();
         colors = colors.replaceAll(" ", "");
-        const firstChar = colors.charAt(0);
-        if (firstChar === '#') {
-            colors = colors.slice(1);
-        }
+        colors = colors.replaceAll("%20", "");
+        let firstChar = colors.charAt(0);
         if (/^#?([a-f0-9]{6}|[a-f0-9]{3})$/.test(colors)) {
-            let result = colors;
-            if (result.length === 3) {
+            let result;
+            colors = firstChar === '#' ? colors.slice(1) : colors;
+            if (colors.length === 3) {
                 result = "";
                 let char;
                 for (var i = 0; i < colors.length; i++) {
                     char = colors.charAt(i);
-                    console.log(char);
                     result += (char + char);
                 }
-                console.log(result);
             }
-            res.send('#' + result);
+            if (result) {
+                firstChar = result.charAt(0);
+                result = firstChar === '#' ? result : '#' + result;
+            } else {
+                result = '#' + colors;
+            }
+            res.send(result);
+        }
+        if (/^rgb\((\d{1,3}[%]?),(\d{1,3}[%]?),(\d{1,3}[%]?)\)$/i.test(colors)) {
+            const matchColors = /^rgb\((\d{1,3}[%]?),(\d{1,3}[%]?),(\d{1,3}[%]?)\)$/i;
+            const match = matchColors.exec(colors);
+            if (parseInt(match[1]) <= 255 && parseInt(match[2]) <= 255 && parseInt(match[3]) <= 255) {
+                const rgbHex = require('rgb-hex');
+                const result = rgbHex(colors);
+                res.send('#' + result);
+            }
+        }
+        if (/^hsl\((\d+\.?\d*),(\d+)%,(\d+)%\)$/.test(colors)) {
+            const HSL = colors.match(/^hsl\((\d+\.?\d*),(\d+)%,(\d+)%\)$/);
+            const hsl = require('hsl-to-hex');
+            const hue = parseInt(HSL[1]);
+            const saturation = parseInt(HSL[2]);
+            const luminosity = parseInt(HSL[3]);
+            if (saturation <= 100) {
+                const hex = hsl(hue, saturation, luminosity);
+                res.send(hex);
+            }
         }
     }
     res.send("Invalid color");
